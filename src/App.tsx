@@ -30,7 +30,7 @@ function App() {
         // The results are returned sorted by the GSI's sort key ('price').
         const { data: items, errors } = await client.models.Product.list({
           filter: {
-            name: { eq: 'Product -BBc' }
+            name: { eq: 'Product BC' }
           }
         });
 
