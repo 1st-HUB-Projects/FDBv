@@ -24,15 +24,15 @@ function App() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // CORRECTED QUERY:
-        // This is the direct and correct way to query the 'byPrice' GSI.
-        // We use the standard .list() method and explicitly specify the index name.
+        // FINAL CORRECTED QUERY:
+        // After updating the 'aws-amplify' package, this syntax will work.
+        // It's the most explicit and stable way to query your GSI.
         const { data: items, errors } = await client.models.Product.list({
-          index: 'byPrice',       // Specify the GSI name here
+          indexName: 'byPrice',       // Explicitly use the GSI by its name
           filter: {
             type: { eq: 'Product' } // Filter by the GSI partition key
           },
-          sortDirection: 'DESC'  // Specify the sort order
+          sortDirection: 'DESC'  // Specify the sort order for the GSI sort key
         });
 
         if (errors) {
@@ -82,3 +82,4 @@ function App() {
 }
 
 export default App;
+
