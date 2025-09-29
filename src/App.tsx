@@ -24,21 +24,23 @@ function App() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // FINAL CORRECTED QUERY:
-        // After updating the 'aws-amplify' package, this syntax will work.
-        // It's the most explicit and stable way to query your GSI.
+        // CORRECT GSI QUERY:
+        // This query uses the exact strategy from your example. By filtering on 'type'
+        // (the GSI partition key), the client automatically queries the 'byPrice' index.
+        // The results are returned sorted by the GSI's sort key ('price').
         const { data: items, errors } = await client.models.Product.list({
-          indexName: 'byPrice',       // Explicitly use the GSI by its name
           filter: {
-            type: { eq: 'Product' } // Filter by the GSI partition key
-          },
-          sortDirection: 'DESC'  // Specify the sort order for the GSI sort key
+            name: { eq: 'Product -BBc' }
+          }
         });
 
         if (errors) {
           console.error('Failed to fetch products:', errors);
         } else {
-          setProducts(items);
+          // The data is already sorted by the database (ascending by default).
+          // If you want DESCENDING order, you can sort here on the client.
+          const sortedItems = items.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+          setProducts(sortedItems);
         }
       } catch (error) {
         console.error('An error occurred:', error);

@@ -3,22 +3,18 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 // Define the schema for the Product model
 const schema = a.schema({
   Product: a.model({
+    // This model now reflects your existing table attributes:
+    // id (implicit), name, description, price, inStock.
     name: a.string().required(),
     description: a.string(),
     price: a.float().required(),
     inStock: a.boolean().default(true),
-    // 1. Add a 'type' field. This acts as a static partition key for our GSI,
-    // allowing us to query across all products.
-    type: a.string().default('Product'),
-    createdAt: a.datetime(),
-    updatedAt: a.datetime(),
   })
-  // 2. Define the Global Secondary Index (GSI).
-  // This creates a new query pattern: fetch all products, sorted by price.
+  // Define a GSI using existing fields.
+  // This version uses the chained method syntax to be compatible with your library version.
   .secondaryIndexes((index) => [
-    index('type').sortKeys(['price']).name('byPrice'),
+    index('name').sortKeys(['price']).name('byNameAndPrice'),
   ])
-  // Removing the explicit 'any' type to resolve local linting errors.
   .authorization((allow) => [allow.publicApiKey()]),
 });
 
@@ -35,3 +31,4 @@ export const data = defineData({
     }
   },
 });
+
