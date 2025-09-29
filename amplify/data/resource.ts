@@ -7,11 +7,13 @@ const schema = a.schema({
     description: a.string(),
     price: a.float().required(),
     inStock: a.boolean().default(true),
+    // Manually define the timestamp fields.
+    // The API will automatically populate these on create and update.
+    createdAt: a.datetime(),
+    updatedAt: a.datetime(),
   })
-  // This line is the fix.
-  // It ensures createdAt and updatedAt are automatically managed by the API.
-  .timestamps() 
-  .authorization(allow => [allow.publicApiKey()]),
+  // Explicitly type the 'allow' parameter to resolve the second error
+  .authorization((allow: any) => [allow.publicApiKey()]),
 });
 
 // This is a TypeScript-only export for creating a type-safe client
