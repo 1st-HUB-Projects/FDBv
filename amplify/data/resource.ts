@@ -18,8 +18,8 @@ const schema = a.schema({
   .secondaryIndexes((index) => [
     index('type').sortKeys(['price']).name('byPrice'),
   ])
-  // Reverting to 'any' to bypass persistent type resolution errors in the build environment.
-  .authorization((allow: any) => [allow.publicApiKey()]),
+  // Removing the explicit 'any' type to resolve local linting errors.
+  .authorization((allow) => [allow.publicApiKey()]),
 });
 
 // This is a TypeScript-only export for creating a type-safe client
