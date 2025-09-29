@@ -1,29 +1,27 @@
-import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any user authenticated via an API key can "create", "read",
-"update", and "delete" any "Todo" records.
-=========================================================================*/
+// Define the schema for the Product model
 const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
+  Product: a.model({
+    name: a.string().required(),
+    description: a.string(),
+    price: a.float().required(),
+    inStock: a.boolean().default(true),
+  })
+  .authorization(allow => [allow.publicApiKey()]), // Use API Key for public access
 });
 
+// This is a TypeScript-only export for creating a type-safe client
 export type Schema = ClientSchema<typeof schema>;
 
+// Define the data resource
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
-    // API Key is used for a.allow.public() rules
+    defaultAuthorizationMode: 'apiKey',
     apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
+      expiresInDays: 365,
+    }
   },
 });
 

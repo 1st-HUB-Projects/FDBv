@@ -1,38 +1,73 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
+import { useEffect, useState } from 'react';
+import { Amplify } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../amplify/data/resource'; // 1. Import the backend schema type
+import config from '../amplify_outputs.json'; // 2. Correct path for the new config file
+import './App.css';
 
+// Configure the Amplify client
+Amplify.configure(config);
+
+// 3. Generate a TYPE-SAFE client for your backend data
 const client = generateClient<Schema>();
 
-function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+// 4. Create a specific TypeScript type for a Product
+type Product = Schema['Product']['type'];
 
+function App() {
+  // 5. Use the Product type to define the state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Effect to fetch products when the component mounts
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        // Fetch all products from the 'Product' table
+        const { data: items, errors } = await client.models.Product.list();
+        if (errors) {
+          console.error('Failed to fetch products:', errors);
+        } else {
+          setProducts(items);
+        }
+      } catch (error) {
+        console.error('An error occurred:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
+  if (loading) {
+    return <div className="loading">Loading products...</div>;
   }
 
   return (
-    <main>
-      <h1>My todos</h1>
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
+    <main className="App">
+      <h1>Product List</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>In Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => (
+            <tr key={product.id}>
+              <td>{product.name}</td>
+              <td>{product.description}</td>
+              <td>${product.price?.toFixed(2)}</td>
+              <td>{product.inStock ? 'Yes' : 'No'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </main>
   );
 }
