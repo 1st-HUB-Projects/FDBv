@@ -19,19 +19,20 @@ function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-// Effect to fetch products when the component mounts
-// Effect to fetch products when the component mounts
-   // Effect to fetch products when the component mounts
+  // Effect to fetch products when the component mounts
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         // CORRECTED QUERY:
         // This is the direct and correct way to query the 'byPrice' GSI.
-        // We use the auto-generated 'listByByPrice' function.
-        const { data: items, errors } = await client.models.Product.listByByPrice({
-          type: 'Product', // Provide the value for the GSI partition key
-          sortDirection: 'DESC' // Specify the sort order
+        // We use the standard .list() method and explicitly specify the index name.
+        const { data: items, errors } = await client.models.Product.list({
+          index: 'byPrice',       // Specify the GSI name here
+          filter: {
+            type: { eq: 'Product' } // Filter by the GSI partition key
+          },
+          sortDirection: 'DESC'  // Specify the sort order
         });
 
         if (errors) {

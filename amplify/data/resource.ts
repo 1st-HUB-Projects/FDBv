@@ -1,84 +1,37 @@
-import { useEffect, useState } from 'react';
-import { Amplify } from 'aws-amplify';
-import { generateClient } from 'aws-amplify/data';
-import type { Schema } from '../amplify/data/resource'; // 1. Import the backend schema type
-import config from '../amplify_outputs.json'; // 2. Correct path for the new config file
-import './App.css';
+import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
-// Configure the Amplify client
-Amplify.configure(config);
+// Define the schema for the Product model
+const schema = a.schema({
+  Product: a.model({
+    name: a.string().required(),
+    description: a.string(),
+    price: a.float().required(),
+    inStock: a.boolean().default(true),
+    // 1. Add a 'type' field. This acts as a static partition key for our GSI,
+    // allowing us to query across all products.
+    type: a.string().default('Product'),
+    createdAt: a.datetime(),
+    updatedAt: a.datetime(),
+  })
+  // 2. Define the Global Secondary Index (GSI).
+  // This creates a new query pattern: fetch all products, sorted by price.
+  .secondaryIndexes((index) => [
+    index('type').sortKeys(['price']).name('byPrice'),
+  ])
+  // Removing the explicit 'any' type to resolve local linting errors.
+  .authorization((allow) => [allow.publicApiKey()]),
+});
 
-// 3. Generate a TYPE-SAFE client for your backend data
-const client = generateClient<Schema>();
+// This is a TypeScript-only export for creating a type-safe client
+export type Schema = ClientSchema<typeof schema>;
 
-// 4. Create a specific TypeScript type for a Product
-type Product = Schema['Product']['type'];
-
-function App() {
-  // 5. Use the Product type to define the state
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Effect to fetch products when the component mounts
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        // CORRECTED QUERY:
-        // This is the direct and correct way to query the 'byPrice' GSI.
-        // We use the standard .list() method and explicitly specify the index name.
-        const { data: items, errors } = await client.models.Product.list({
-          index: 'byPrice',       // Specify the GSI name here
-          filter: {
-            type: { eq: 'Product' } // Filter by the GSI partition key
-          },
-          sortDirection: 'DESC'  // Specify the sort order
-        });
-
-        if (errors) {
-          console.error('Failed to fetch products:', errors);
-        } else {
-          setProducts(items);
-        }
-      } catch (error) {
-        console.error('An error occurred:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  if (loading) {
-    return <div className="loading">Loading products...</div>;
-  }
-
-  return (
-    <main className="App">
-      <h1>Product List</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>In Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td>{product.name}</td>
-              <td>{product.description}</td>
-              <td>${product.price?.toFixed(2)}</td>
-              <td>{product.inStock ? 'Yes' : 'No'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
-  );
-}
-
-export default App;
+// Define the data resource
+export const data = defineData({
+  schema,
+  authorizationModes: {
+    defaultAuthorizationMode: 'apiKey',
+    apiKeyAuthorizationMode: {
+      expiresInDays: 365,
+    }
+  },
+});
