@@ -3,17 +3,15 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 // Define the schema for the Product model
 const schema = a.schema({
   Product: a.model({
-    // This model now reflects your existing table attributes:
-    // id (implicit), name, description, price, inStock.
+    // Reflecting your existing table attributes
+    id: a.id().required(), // Explicitly added as it's implied in your table
     name: a.string().required(),
     description: a.string(),
     price: a.float().required(),
     inStock: a.boolean().default(true),
   })
-  // Define a GSI using existing fields.
-  // This version uses the chained method syntax to be compatible with your library version.
   .secondaryIndexes((index) => [
-    index('name').sortKeys(['price']).name('byNameAndPrice'),
+    index('name').sortKeys(['inStock']).name('byNameAndAvailability').build(),
   ])
   .authorization((allow) => [allow.publicApiKey()]),
 });
@@ -31,4 +29,3 @@ export const data = defineData({
     }
   },
 });
-
