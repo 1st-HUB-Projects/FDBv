@@ -8,7 +8,10 @@ const schema = a.schema({
     price: a.float().required(),
     inStock: a.boolean().default(true),
   })
-  .authorization(allow => [allow.publicApiKey()]), // Use API Key for public access
+  // This line is the fix.
+  // It ensures createdAt and updatedAt are automatically managed by the API.
+  .timestamps() 
+  .authorization(allow => [allow.publicApiKey()]),
 });
 
 // This is a TypeScript-only export for creating a type-safe client
