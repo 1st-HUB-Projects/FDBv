@@ -36,26 +36,25 @@ const schema = a.schema({
     business: a.belongsTo('Business', 'businessId'),
     type: a.string().required().default('Item'),
   }).secondaryIndexes((index) => [
-    // Corrected GSI syntax using chained methods
     index('type').sortKeys(['quantityAvailable']).name('byAvailability'),
   ]),
 
   Order: a.model({
-  orderDate: a.datetime().required(),
-  status: a.enum(OrderStatusValues), // Remove .default('ORDERED')
-  totalAmount: a.float().required(),
-  vat: a.float(),
-  discount: a.float(),
-  businessId: a.id().required(),
-  business: a.belongsTo('Business', 'businessId'),
-  customerId: a.id().required(),
-  customer: a.belongsTo('Customer', 'customerId'),
-  details: a.hasMany('OrderDetail', 'orderId'),
-  businessStatus: a.string(),
-}).secondaryIndexes((index) => [
-  index('businessStatus').sortKeys(['orderDate']).name('byBusinessStatus'),
-  index('customerId').sortKeys(['totalAmount']).name('byCustomerByAmount'),
-]),
+    orderDate: a.datetime().required(),
+    status: a.enum(OrderStatusValues), // Removed .default('ORDERED')
+    totalAmount: a.float().required(),
+    vat: a.float(),
+    discount: a.float(),
+    businessId: a.id().required(),
+    business: a.belongsTo('Business', 'businessId'),
+    customerId: a.id().required(),
+    customer: a.belongsTo('Customer', 'customerId'),
+    details: a.hasMany('OrderDetail', 'orderId'),
+    businessStatus: a.string(),
+  }).secondaryIndexes((index) => [
+    index('businessStatus').sortKeys(['orderDate']).name('byBusinessStatus'),
+    index('customerId').sortKeys(['totalAmount']).name('byCustomerByAmount'),
+  ]),
 
   OrderDetail: a.model({
     quantity: a.integer().required(),
@@ -65,10 +64,7 @@ const schema = a.schema({
     itemId: a.id().required(),
     item: a.belongsTo('Item', 'itemId'),
   }),
-
-})
-.authorization((allow) => [allow.publicApiKey()]);
-
+}).authorization((allow) => [allow.publicApiKey()]);
 
 export type Schema = ClientSchema<typeof schema>;
 
@@ -78,7 +74,6 @@ export const data = defineData({
     defaultAuthorizationMode: 'apiKey',
     apiKeyAuthorizationMode: {
       expiresInDays: 365,
-    }
+    },
   },
 });
-
