@@ -41,24 +41,21 @@ const schema = a.schema({
   ]),
 
   Order: a.model({
-    orderDate: a.datetime().required(),
-    // Corrected enum syntax: .required() is removed as it's not valid here.
-    // Fields are required by default unless .optional() is used.
-    status: a.enum(OrderStatusValues).default('ORDERED'),
-    totalAmount: a.float().required(),
-    vat: a.float(),
-    discount: a.float(),
-    businessId: a.id().required(),
-    business: a.belongsTo('Business', 'businessId'),
-    customerId: a.id().required(),
-    customer: a.belongsTo('Customer', 'customerId'),
-    details: a.hasMany('OrderDetail', 'orderId'),
-    businessStatus: a.string(),
-  }).secondaryIndexes((index) => [
-    // Corrected GSI syntax for all indexes
-    index('businessStatus').sortKeys(['orderDate']).name('byBusinessStatus'),
-    index('customerId').sortKeys(['totalAmount']).name('byCustomerByAmount'),
-  ]),
+  orderDate: a.datetime().required(),
+  status: a.enum(OrderStatusValues), // Remove .default('ORDERED')
+  totalAmount: a.float().required(),
+  vat: a.float(),
+  discount: a.float(),
+  businessId: a.id().required(),
+  business: a.belongsTo('Business', 'businessId'),
+  customerId: a.id().required(),
+  customer: a.belongsTo('Customer', 'customerId'),
+  details: a.hasMany('OrderDetail', 'orderId'),
+  businessStatus: a.string(),
+}).secondaryIndexes((index) => [
+  index('businessStatus').sortKeys(['orderDate']).name('byBusinessStatus'),
+  index('customerId').sortKeys(['totalAmount']).name('byCustomerByAmount'),
+]),
 
   OrderDetail: a.model({
     quantity: a.integer().required(),

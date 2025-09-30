@@ -28,6 +28,8 @@ function App() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
+  
+
   // --- DATA FETCHING & REAL-TIME SUBSCRIPTIONS ---
   useEffect(() => {
     // This function will fetch the data that does not need to be real-time.
